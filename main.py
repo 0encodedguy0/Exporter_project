@@ -34,7 +34,7 @@ async def count_messages(event):
     message_counter.labels(chat_id=CHAT_ID).inc()  # Увеличиваем счетчик сообщений
 
 async def monitor():
-    """Мониторинг сообщенийю"""
+    """Мониторинг сообщений."""
     global message_counter
     while True:
         await client.loop.run_in_executor(None, time.sleep, MONITOR_INTERVAL)
