@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  telegram-monitor:
+    build: .
+    environment:
+      TELEGRAM_API_ID: "your_api_id"
+      TELEGRAM_API_HASH: "your_api_hash"
+      TELEGRAM_CHAT_ID: "your_chat_id"
+      TELEGRAM_ALERT_CHAT_ID: "your_alert_chat_id"
+      MESSAGE_THRESHOLD: 50
+    ports:
+      - "8000:8000"  # Экспортируем порт для Prometheus
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus.yml
+    ports:
+      - "9090:9090"  # Интерфейс Prometheus
+    restart: unless-stopped
