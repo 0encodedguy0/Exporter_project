@@ -9,8 +9,8 @@
     - docker-compose.yml
 
 2. Соберите и запустите контейнеры:
-   ```
-    bash docker-compose up --build
+   ```bash
+    docker-compose up --build
    ```
 
 4. Убедитесь, что метрики доступны:
