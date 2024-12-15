@@ -1,7 +1,8 @@
 global:
-  scrape_interval: 15s  # Интервал сбора метрик
+  scrape_interval: 5s  # Интервал сбора метрик
+  evaluation_interval: 5s # Интервал проверки правил(???)
 
 scrape_configs:
-  - job_name: 'telegram_exporter'
+- job_name: "monitor"
   static_configs:
-    - targets: ['telegram-monitor:8000']  # Имя сервиса и порт в Docker Compose
+  - targets: ["telegram_monitor:8000"]  # Имя сервиса и порт в Docker Compose
