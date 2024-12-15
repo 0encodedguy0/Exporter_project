@@ -2,20 +2,31 @@ version: "3.9"
 services:
   telegram-monitor:
     build: .
+    container_name: telegram_monitor
     environment:
-      TELEGRAM_API_ID: "your_api_id"
-      TELEGRAM_API_HASH: "your_api_hash"
-      TELEGRAM_CHAT_ID: "your_chat_id"
-      TELEGRAM_ALERT_CHAT_ID: "your_alert_chat_id"
-      MESSAGE_THRESHOLD: 50
+      TELEGRAM_API_ID: ""
+      TELEGRAM_API_HASH: ""
+      TELEGRAM_CHAT_ID: ""
+      TELEGRAM_ALERT_CHAT_ID: ""
+      BOT_TOKEN: ""
+      MESSAGE_THRESHOLD: 5
     ports:
       - "8000:8000"  # Экспортируем порт для Prometheus
     restart: unless-stopped
 
   prometheus:
     image: prom/prometheus:latest
+    container_name: prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"  # Интерфейс Prometheus
     restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: dashboard_grafana
+    ports:
+      - "4444:3000"
+    volumes:
+      - "./grafana/:/var/lib/grafana"
