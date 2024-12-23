@@ -7,11 +7,11 @@ from datetime import datetime
 from utils import Metrics, MESSAGE_THRESHOLD, MONITOR_INTERVAL
 
 # Параметры конфигурации
-API_ID = int(os.getenv("TELEGRAM_API_ID", "25445248"))
-API_HASH = os.getenv("TELEGRAM_API_HASH", "70c33cde3ca2b72559054c47ea2c4857")
-CHAT_ID = int(os.getenv("TELEGRAM_CHAT_ID", "-4752286600"))  # ID чата для мониторинга
-ALERT_CHAT_ID = int(os.getenv("TELEGRAM_ALERT_CHAT_ID", "-4752286600"))  # ID чата для предупреждений
-BOT_TOKEN = os.getenv("BOT_TOKEN", "7771123119:AAFsplJth2COqVboKNvHjYPc3hrdGazVogo") # токен бота
+API_ID = int(os.getenv("TELEGRAM_API_ID", ""))
+API_HASH = os.getenv("TELEGRAM_API_HASH", "")
+CHAT_ID = int(os.getenv("TELEGRAM_CHAT_ID", ""))  # ID чата для мониторинга
+ALERT_CHAT_ID = int(os.getenv("TELEGRAM_ALERT_CHAT_ID", ""))  # ID чата для предупреждений
+BOT_TOKEN = os.getenv("BOT_TOKEN", "") # токен бота
 
 # Telegram клиент
 client = TelegramClient('bot_session', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
