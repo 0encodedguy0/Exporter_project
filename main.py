@@ -22,7 +22,6 @@ client.add_event_handler(metrics.count_messages, events.NewMessage(chats=CHAT_ID
 async def monitor(metrics):
     """Мониторинг сообщений."""
     last_reset_time = datetime.now()
-    # global message_counter_int, ner_counts, last_reset_time
     while True:
         await client.loop.run_in_executor(None, time.sleep, MONITOR_INTERVAL)
 
@@ -32,7 +31,6 @@ async def monitor(metrics):
 
         if datetime.now() - last_reset_time >= metrics.ner_time_window:
             await metrics.send_ner_summary()
-            # ner_counts.clear() # uncomment if you want to reset ner_counts
             last_reset_time = datetime.now()
 
 if __name__ == "__main__":
