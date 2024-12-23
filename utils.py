@@ -3,20 +3,11 @@ from transformers import pipeline
 from prometheus_client import Counter, Gauge
 from collections import defaultdict
 from datetime import datetime, timedelta
-from gensim.corpora.dictionary import Dictionary
-from gensim.models.ldamodel import LdaModel
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-import string
-import nltk
 
-nltk.download('punkt')
-nltk.download('stopwords')
 
 MONITOR_INTERVAL = 15
 MESSAGE_THRESHOLD = 5
 TOP_K_ENTITIES = 6
-NUM_TOPICS = 5  # Количество тем для LDA
 
 class Metrics:
     def __init__(self, client, chat_id, alert_chat_id=None):
@@ -31,7 +22,7 @@ class Metrics:
         self.alerts_counter = Counter('telegram_alerts_total', 'Total number of alerts sent')
         self.entities_gauge = Gauge('entities', 'frequencies', ['entity'])
         self.emotion_gauge = Gauge('emotion_score', 'Detected emotion from messages', ['emotion'])
-        self.topic_gauge = Gauge('topic_score', 'Detected topics from messages', ['topic'])
+        self.sentiment_gauge = Gauge('sentiment_score', 'Detected sentiment from messages', ['sentiment'])
 
         self.emotion_pipeline = pipeline("text-classification", model="seara/rubert-tiny2-russian-emotion-detection-ru-go-emotions")
         self.sentiment_pipeline = pipeline("sentiment-analysis", model="seara/rubert-tiny2-russian-sentiment")
@@ -44,11 +35,6 @@ class Metrics:
 
         self.nlp = spacy.load("ru_core_news_sm")
 
-        # Для Topic Modelling
-        self.stop_words = set(stopwords.words("russian"))
-        self.dictionary = None
-        self.lda_model = None
-
     def analyze_emotion(self, text):
         """Analyze emotion of the given text and return detected emotions."""
         results = self.emotion_pipeline(text)
@@ -58,32 +44,6 @@ class Metrics:
         """Analyze sentiment of the given text (positive, neutral, negative)."""
         results = self.sentiment_pipeline(text)
         return results[0]['label'], results[0]['score']  # Return sentiment label and confidence score
-
-    def preprocess_texts(self, texts):
-        """Preprocess a list of texts for LDA."""
-        processed_texts = []
-        for text in texts:
-            tokens = word_tokenize(text.lower())
-            tokens = [t for t in tokens if t not in self.stop_words and t not in string.punctuation]
-            processed_texts.append(tokens)
-        return processed_texts
-
-    def train_lda_model(self, texts):
-        """Train an LDA model on the given texts."""
-        processed_texts = self.preprocess_texts(texts)
-        self.dictionary = Dictionary(processed_texts)
-        corpus = [self.dictionary.doc2bow(text) for text in processed_texts]
-        self.lda_model = LdaModel(corpus, num_topics=NUM_TOPICS, id2word=self.dictionary, passes=10)
-
-    def get_topics(self, text):
-        """Infer topics from a single text."""
-        if not self.lda_model or not self.dictionary:
-            return []
-
-        tokens = [t for t in word_tokenize(text.lower()) if t not in self.stop_words and t not in string.punctuation]
-        bow = self.dictionary.doc2bow(tokens)
-        topics = self.lda_model.get_document_topics(bow)
-        return topics
 
     def update_metrics(self):
         """Update Prometheus metrics based on the current entity frequencies."""
@@ -123,17 +83,13 @@ class Metrics:
 
         message_text = event.message.message
         if message_text:
-            self.extract_named_entities(message_text)  # Extract named entities
+            # Анализ сущностей
+            self.extract_named_entities(message_text)
 
             # Анализ эмоций
-            emotion_label, confidence_score = self.analyze_emotion(message_text)
-            self.emotion_gauge.labels(emotion=emotion_label).set(confidence_score)
+            emotion_label, emotion_score = self.analyze_emotion(message_text)
+            self.emotion_gauge.labels(emotion=emotion_label).set(emotion_score)
 
             # Анализ тональности
             sentiment_label, sentiment_score = self.analyze_sentiment(message_text)
-
-            # Вывод тем
-            topics = self.get_topics(message_text)
-            if topics:
-                for topic_id, topic_score in topics:
-                    self.topic_gauge.labels(topic=self.lda_model.print_topic(topic_id)).set(topic_score)
+            self.sentiment_gauge.labels(sentiment=sentiment_label).set(sentiment_score)
