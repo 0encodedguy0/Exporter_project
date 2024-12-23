@@ -18,8 +18,6 @@ RUN pip install setuptools -U
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install -U spacy
 RUN python -m spacy download ru_core_news_sm
-RUN pip install tensorflow
-RUN pip install tf-keras
 
 # Копируем основной скрипт
 COPY main.py /app/
