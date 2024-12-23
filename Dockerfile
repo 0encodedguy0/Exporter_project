@@ -7,11 +7,21 @@ WORKDIR /app
 # Копируем файл с зависимостями
 COPY requirements.txt /app/
 
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libffi-dev \
+    && apt-get clean
+
 # Устанавливаем зависимости
+RUN pip install setuptools -U
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -U spacy
+RUN python -m spacy download ru_core_news_sm
 
 # Копируем основной скрипт
 COPY main.py /app/
+COPY utils.py /app/
 COPY prometheus.yml /app/
 COPY grafana/ /app/
 
