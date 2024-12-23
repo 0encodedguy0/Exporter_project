@@ -34,7 +34,7 @@ class Metrics:
         self.topic_gauge = Gauge('topic_score', 'Detected topics from messages', ['topic'])
 
         self.emotion_pipeline = pipeline("text-classification", model="seara/rubert-tiny2-russian-emotion-detection-ru-go-emotions")
-        self.sentiment_pipeline = pipeline("sentiment-analysis", model="blanchefort/rubert-base-cased-sentiment")
+        self.sentiment_pipeline = pipeline("sentiment-analysis", model="seara/rubert-tiny2-russian-sentiment")
 
         self.chat_id = chat_id
         if alert_chat_id is None:
