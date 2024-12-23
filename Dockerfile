@@ -4,8 +4,12 @@ FROM python:3.12-slim
 # Устанавливаем рабочую дирректорию
 WORKDIR /app
 
-# Копируем файл с зависимостями
+# Копируем рабочие файлы в контейнер
 COPY requirements.txt /app/
+COPY main.py /app/
+COPY utils.py /app/
+COPY prometheus.yml /app/
+COPY grafana/ /app/
 
 RUN apt-get update && apt-get install -y \
     gcc \
@@ -15,15 +19,8 @@ RUN apt-get update && apt-get install -y \
 
 # Устанавливаем зависимости
 RUN pip install setuptools -U
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install -U spacy
+RUN pip install -r requirements.txt
 RUN python -m spacy download ru_core_news_sm
-
-# Копируем основной скрипт
-COPY main.py /app/
-COPY utils.py /app/
-COPY prometheus.yml /app/
-COPY grafana/ /app/
 
 # Устанавливаем переменные окружения (опционально)
 ENV TELEGRAM_API_ID: ""

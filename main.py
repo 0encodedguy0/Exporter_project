@@ -17,7 +17,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN", "") # токен бота
 client = TelegramClient('bot_session', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
 metrics = Metrics(client=client, chat_id=CHAT_ID, alert_chat_id=ALERT_CHAT_ID)
 
-client.add_event_handler(metrics.count_messages, events.NewMessage(chats=CHAT_ID))
+client.add_event_handler(metrics.run, events.NewMessage(chats=CHAT_ID))
 
 async def monitor(metrics):
     """Мониторинг сообщений."""
@@ -30,7 +30,6 @@ async def monitor(metrics):
         metrics.total_messages = 0
 
         if datetime.now() - last_reset_time >= metrics.ner_time_window:
-            await metrics.send_ner_summary()
             last_reset_time = datetime.now()
 
 if __name__ == "__main__":
