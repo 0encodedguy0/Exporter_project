@@ -10,6 +10,34 @@ MESSAGE_THRESHOLD = 5
 TOP_K_ENTITIES = 6
 
 class Metrics:
+    """
+    A class to monitor and record metrics for a Telegram chat.
+
+    Attributes:
+    client : object
+        The client used to interact with the Telegram API.
+    chat_id : int
+        The ID of the chat being monitored.
+    alert_chat_id : int, optional
+        The ID of the chat where alerts are sent (default is None).
+    total_messages : int
+        The total number of messages processed.
+    ner_counts : defaultdict
+        A dictionary to count named entities.
+    ner_time_window : timedelta
+        The time window for monitoring named entities.
+    last_reset_time : datetime
+        The last time the metrics were reset.
+    message_counter : Counter
+        A Prometheus counter for the total number of messages processed.
+    alerts_counter : Counter
+        A Prometheus counter for the total number of alerts sent.
+    entities_gauge : Gauge
+        A Prometheus gauge for the frequency of named entities.
+    emotion_gauge : Gauge
+        A Prometheus gauge for the detected emotion from messages.
+    """
+
     def __init__(self, client, chat_id, alert_chat_id=None):
         self.client = client
 
@@ -18,7 +46,7 @@ class Metrics:
         self.ner_time_window = timedelta(seconds=MONITOR_INTERVAL)
         self.last_reset_time = datetime.now()
 
-        self.message_counter = Counter('telegram_message_total', 'Total number of message processed', ['chat_id'])
+        self.message_counter = Counter('telegram_message_total', 'Total number of message processed')
         self.alerts_counter = Counter('telegram_alerts_total', 'Total number of alerts sent')
         self.entities_gauge = Gauge('entities', 'frequencies', ['entity'])
 
@@ -64,23 +92,15 @@ class Metrics:
         self.ner_counts = dict(sorted(self.ner_counts.items(), key=lambda item: item[1])[:TOP_K_ENTITIES])
         self.update_metrics()
 
-    async def send_ner_summary(self):
-        """Send NER summary to the alert chat."""
-        summary = f"Сводка по именованным сущностям за последние {MONITOR_INTERVAL} секунд:\n"
-        for entity, count in sorted(self.ner_counts.items(), key=lambda x: x[1], reverse=True):
-            summary += f"{entity}: {count}\n"
-        
-        await self.client.send_message(self.alert_chat_id, summary)
-
     async def send_alert(self):
-        """Отправить предупреждение в Telegram."""
-        await self.client.send_message(self.alert_chat_id, f"Внимание, количество сообщений за час превысило {MESSAGE_THRESHOLD}!")
+        """Send alert to Telegram."""
+        await self.client.send_message(self.alert_chat_id, f"Внимание, количество сообщений за час превысило {MESSAGE_THRESHOLD}")
         self.alerts_counter.inc()  # Увеличиваем счетчик предупреждений
 
-    async def count_messages(self, event):
+    async def run(self, event):
         """Process new messages."""    
         self.total_messages += 1
-        self.message_counter.labels(chat_id=self.chat_id).inc()  # Increment message counter
+        self.message_counter.inc()  # Increment message counter
 
         message_text = event.message.message
         if message_text:
