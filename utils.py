@@ -94,7 +94,7 @@ class Metrics:
 
     async def send_alert(self):
         """Send alert to Telegram."""
-        await self.client.send_message(self.alert_chat_id, f"Внимание, количество сообщений за час превысило {MESSAGE_THRESHOLD}!")
+        await self.client.send_message(self.alert_chat_id, f"Внимание, количество сообщений за час превысило {MESSAGE_THRESHOLD}")
         self.alerts_counter.inc()  # Увеличиваем счетчик предупреждений
 
     async def run(self, event):

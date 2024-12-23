@@ -36,5 +36,6 @@ if __name__ == "__main__":
     # Запускаем HTTP-сервер для экспорта метрик Prometheus
     start_http_server(8000)  # Метрики будут доступны на порту 8000
     with client:
+        client.send_message(metrics.alert_chat_id, f"Бот начал работу!")
         client.loop.create_task(monitor(metrics))
         client.run_until_disconnected()
