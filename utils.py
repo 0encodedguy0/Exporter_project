@@ -21,10 +21,12 @@ class Metrics:
         self.message_counter = Counter('telegram_message_total', 'Total number of message processed', ['chat_id'])
         self.alerts_counter = Counter('telegram_alerts_total', 'Total number of alerts sent')
         self.entities_gauge = Gauge('entities', 'frequencies', ['entity'])
-        #self.emotion_gauge = Gauge('emotion_score', 'Detected emotion from messages', ['chat_id'])
+
         self.emotion_gauge = Gauge('emotion_score', 'Detected emotion from messages', ['emotion'])
+        self.sentiment_gauge = Gauge('sentiment_score', 'Detected sentiment from messages', ['sentiment'])
 
         self.emotion_pipeline = pipeline("text-classification", model="seara/rubert-tiny2-russian-emotion-detection-ru-go-emotions")
+        self.sentiment_pipeline = pipeline("sentiment-analysis", model="seara/rubert-tiny2-russian-sentiment")
 
         self.chat_id = chat_id
         if alert_chat_id is None:
@@ -33,18 +35,22 @@ class Metrics:
             self.alert_chat_id = alert_chat_id
 
         self.nlp = spacy.load("ru_core_news_sm")
-    
+
     def analyze_emotion(self, text):
         """Analyze emotion of the given text and return detected emotions."""
         results = self.emotion_pipeline(text)
         return results[0]['label'], results[0]['score']  # Return emotion label and confidence score
+
+    def analyze_sentiment(self, text):
+        """Analyze sentiment of the given text (positive, neutral, negative)."""
+        results = self.sentiment_pipeline(text)
+        return results[0]['label'], results[0]['score']  # Return sentiment label and confidence score
 
     def update_metrics(self):
         """Update Prometheus metrics based on the current entity frequencies."""
         self.entities_gauge.clear()
         for entity, count in self.ner_counts.items():
             self.entities_gauge.labels(entity=entity).set(count)
-
 
     def extract_named_entities(self, text):
         """Extract named entities from the given text and update the NER counter."""
@@ -78,9 +84,13 @@ class Metrics:
 
         message_text = event.message.message
         if message_text:
-            self.extract_named_entities(message_text)  # Extract named entities
+            # Анализ сущностей
+            self.extract_named_entities(message_text)
 
-        emotion_label, confidence_score = self.analyze_emotion(message_text)
-        #self.emotion_gauge.labels(chat_id=self.chat_id).set(confidence_score) 
-        self.emotion_gauge.labels(emotion=emotion_label).set(confidence_score)
-    
+            # Анализ эмоций
+            emotion_label, emotion_score = self.analyze_emotion(message_text)
+            self.emotion_gauge.labels(emotion=emotion_label).set(emotion_score)
+
+            # Анализ тональности
+            sentiment_label, sentiment_score = self.analyze_sentiment(message_text)
+            self.sentiment_gauge.labels(sentiment=sentiment_label).set(sentiment_score)
