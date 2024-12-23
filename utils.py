@@ -21,9 +21,10 @@ class Metrics:
         self.message_counter = Counter('telegram_message_total', 'Total number of message processed', ['chat_id'])
         self.alerts_counter = Counter('telegram_alerts_total', 'Total number of alerts sent')
         self.entities_gauge = Gauge('entities', 'frequencies', ['entity'])
-        self.emotion_gauge = Gauge('emotion_score', 'Detected emotion from messages', ['chat_id'])
+        #self.emotion_gauge = Gauge('emotion_score', 'Detected emotion from messages', ['chat_id'])
+        self.emotion_gauge = Gauge('emotion_score', 'Detected emotion from messages', ['emotion'])
 
-        self.emotion_pipeline = pipeline("text-classification", model="arpanghoshal/EmoRoBERTa")
+        self.emotion_pipeline = pipeline("text-classification", model="seara/rubert-tiny2-russian-emotion-detection-ru-go-emotions")
 
         self.chat_id = chat_id
         if alert_chat_id is None:
@@ -80,5 +81,6 @@ class Metrics:
             self.extract_named_entities(message_text)  # Extract named entities
 
         emotion_label, confidence_score = self.analyze_emotion(message_text)
-        self.emotion_gauge.labels(chat_id=self.chat_id).set(confidence_score) 
+        #self.emotion_gauge.labels(chat_id=self.chat_id).set(confidence_score) 
+        self.emotion_gauge.labels(emotion=emotion_label).set(confidence_score)
     
