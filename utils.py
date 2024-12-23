@@ -1,9 +1,9 @@
 import spacy
+
 from transformers import pipeline
 from prometheus_client import Counter, Gauge
 from collections import defaultdict
 from datetime import datetime, timedelta
-
 
 MONITOR_INTERVAL = 15
 MESSAGE_THRESHOLD = 5
@@ -21,6 +21,7 @@ class Metrics:
         self.message_counter = Counter('telegram_message_total', 'Total number of message processed', ['chat_id'])
         self.alerts_counter = Counter('telegram_alerts_total', 'Total number of alerts sent')
         self.entities_gauge = Gauge('entities', 'frequencies', ['entity'])
+
         self.emotion_gauge = Gauge('emotion_score', 'Detected emotion from messages', ['emotion'])
         self.sentiment_gauge = Gauge('sentiment_score', 'Detected sentiment from messages', ['sentiment'])
 
