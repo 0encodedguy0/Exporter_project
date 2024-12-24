@@ -1,6 +1,7 @@
 # Exporter_project
+![398244519-192cf58a-c7a5-41eb-9c54-dca6e3f7a0b7](https://github.com/user-attachments/assets/1f74bd0e-9c7a-41a7-a71a-8e2740253c22)
 
-Для запуска системы:
+## Для запуска системы:
 
 1. Внесите необходимые данные в файлы:
     - main.py
